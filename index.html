@@ -1,0 +1,59 @@
+<script>
+    // Crear una sola instancia global para evitar bloqueos en iOS/Android
+    const audioPlayer = new Audio();
+    let currentBtn = null;
+
+    const buttons = document.querySelectorAll('.btn-tech');
+
+    // Función principal de reproducción compatible con móviles
+    function handlePlay(button) {
+      const audioSrc = button.getAttribute('data-audio');
+
+      if (!audioSrc) {
+        alert("Audio pendiente de asociar.");
+        return;
+      }
+
+      // Si se presiona el botón que ya está sonando, pausar
+      if (currentBtn === button && !audioPlayer.paused) {
+        audioPlayer.pause();
+        button.classList.remove('playing');
+        return;
+      }
+
+      // Limpiar estado del botón anterior
+      if (currentBtn) {
+        currentBtn.classList.remove('playing');
+      }
+
+      // Asignar nueva fuente y preparar
+      audioPlayer.src = audioSrc;
+      currentBtn = button;
+      button.classList.add('playing');
+
+      // Promesa de reproducción explícita para navegadores móviles
+      const playPromise = audioPlayer.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Error de reproducción en celular:", error);
+          button.classList.remove('playing');
+        });
+      }
+    }
+
+    // Evento al terminar la canción
+    audioPlayer.onended = () => {
+      if (currentBtn) {
+        currentBtn.classList.remove('playing');
+        currentBtn = null;
+      }
+    };
+
+    // Asignar eventos tanto para PC (click) como para Móviles (touchend)
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        handlePlay(button);
+      });
+    });
+  </script>
